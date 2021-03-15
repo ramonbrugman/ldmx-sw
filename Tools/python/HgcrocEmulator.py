@@ -90,7 +90,7 @@ class HgcrocEmulator() :
         """
 
         return electrons*(0.162/1000.)*(1./self.readoutPadCapacitance)
-    
+
     def setNoise(self, noiseIntercept , noiseSlope ) :
         """Calculate the Noise RMS [mV] from the capacitance of the readout pads.
 
@@ -125,4 +125,3 @@ class HgcrocEmulator() :
 
         self.toaThreshold = self.gain*self.pedestal + self.calculateVoltage( 5.*nElectronsPerMIP )
         self.totThreshold = self.gain*self.pedestal + self.calculateVoltage( 50.*nElectronsPerMIP )
-
