@@ -81,7 +81,7 @@ bool HgcrocEmulator::digitize(
 
   // set time in the window to zero if noise pushed it below zero
   // TODO better (more physical) method for handling this case?
-  if (timeInWindow < 0.) timeInWindow = 0.;
+  //if (timeInWindow < 0.) timeInWindow = 0.;
 
   // setup up pulse by changing the amplitude and timing parameters
   configurePulse(signalAmplitude, timeInWindow);
