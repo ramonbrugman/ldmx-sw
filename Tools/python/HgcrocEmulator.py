@@ -20,7 +20,7 @@ class HgcrocEmulator() :
     nADCs : int
         Number of voltage samples to measure for one DIGI
     iSOI : int
-        (UNUSED) Index for sample of interest within multi-sample DIGI
+        Index for sample of interest within multi-sample DIGI
     gain : float
         Conversion from ADC Counts to voltage [mV]
     noiseRMS : float
@@ -46,7 +46,7 @@ class HgcrocEmulator() :
         self.readoutPadCapacitance = 20. #pF <- derived from hardware of HGCROC
         self.maxADCRange = 320. #fC <- setting of HGCROC
         self.nADCs = 10 
-        self.iSOI  = 0 
+        self.iSOI  = 2
         self.totMax = 200. #ns - maximum TOT allowed by chip (spec sheet)
         self.drainRate = 10240. / self.totMax #fC / ns - rate charge drains off during TOT (spec sheet, is tune-able)
         self.rateUpSlope =  -0.345
