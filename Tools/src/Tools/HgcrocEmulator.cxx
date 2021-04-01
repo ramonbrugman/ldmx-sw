@@ -119,17 +119,15 @@ class CompositePulse {
 };
 
 bool HgcrocEmulator::digitize(
-    const int &channelID, const std::vector<double> &voltages,
-    const std::vector<double> &times,
+    const int &channelID,
+    std::vector<std::pair<double,double>> &arriving_pulses,
     std::vector<ldmx::HgcrocDigiCollection::Sample> &digiToAdd) const {
+
   digiToAdd.clear();  // make sure it is clean
 
-  std::vector<std::pair<double, double> > voltage_time, merged_voltage_time;
-  // step 0: sort by subhit amplitude
-  for (size_t i=0; i< voltages.size(); i++)
-    voltage_time.push_back(std::pair<double,double>(voltages[i],times[i]));
-
-  std::sort(voltage_time.begin(), voltage_time.end(),
+  // sort by amplitude
+  //  ==> makes sure that puleses are merged towards higher ones
+  std::sort(arriving_pulses.begin(), arriving_pulses.end(),
             [](const std::pair<double,double>& a, const std::pair<double,double>&b) {
               return a.first>b.first;
             }
@@ -138,7 +136,7 @@ bool HgcrocEmulator::digitize(
   // step 1: gather voltages into groups separated by (programmable) ns, single pass
   CompositePulse pulse(pulseFunc_);
 
-  for (auto hit : voltage_time)
+  for (auto hit : arriving_pulses)
     pulse.addOrMerge(hit, hit_merge_ns_);  
 
   // TODO step 2: add timing jitter
@@ -245,30 +243,26 @@ bool HgcrocEmulator::digitize(
       int tdc_counts = int(tot * 4096 / totMax_) + pedestal;
       
       // were we already over TOA?  TOT is reported in BX where TOA went over threshold...
+      int toa{0};
       if (wasTOA) {
-        //        std::cout << "TOT is in the past..." << std::endl;
-        digiToAdd.back()=HgcrocDigiCollection::Sample(false,true,
-                                                       digiToAdd.back().adc_tm1(),
-                                                       tdc_counts,
-                                                       digiToAdd.back().toa());
-      } else { // need to find the TOA...
-        //        std::cout << "TOT/TOA is here..." << std::endl;
+        // TOA was in the past
+        toa = digiToAdd.back().toa();
+      } else { 
+        // TOA is here and we need to find it
         double timecross=pulse.findCrossing(startBX,toverTOT,toaThreshold);
-        int toa=int((timecross-startBX)*ns_);
-        std::cout << timecross << " " <<toa << std::endl;
+        toa=int((timecross-startBX)*ns_);
+        //std::cout << timecross << " " <<toa << std::endl;
         // keep inside valid limits
         if (toa==0) toa=1;
         if (toa>1023) toa=1023;
-
-        digiToAdd.emplace_back(
-            false, true,  // mark as a TOT measurement
-            (iADC > 0) ? digiToAdd.at(iADC - 1).adc_t() : pedestal, // ADC t-1 is first measurement
-            tdc_counts, // TOT
-            toa // TOA is third measurement
-                               );
-        
-        
       }
+
+      digiToAdd.emplace_back(
+          false, true,  // mark as a TOT measurement
+          (iADC > 0) ? digiToAdd.at(iADC - 1).adc_t() : pedestal, // ADC t-1 is first measurement
+          tdc_counts, // TOT
+          toa // TOA is third measurement
+          );
 
       // TODO: properly handle saturation and recovery, eventually.  Now just kill everything...
       while (digiToAdd.size()<nADCs_) {
