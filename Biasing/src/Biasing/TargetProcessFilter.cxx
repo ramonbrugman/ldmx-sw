@@ -108,6 +108,7 @@ void TargetProcessFilter::stepping(const G4Step* step) {
               << "Brem photon produced " << secondaries->size()
               << " particle via " << processName << " process." << std::endl;
     trackInfo->tagBremCandidate(false);
+    trackInfo->tagPNGamma();
     getEventInfo()->decBremCandidateCount();
   }
 }
